@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Bot;
-use App\Models\Setting;
+use App\Models\TotalData;
 class TelegramHandleUpdateCommand extends Command
 {
    use \App\Traits\UpdateTrait;
@@ -27,7 +27,7 @@ class TelegramHandleUpdateCommand extends Command
      */
     public function handle()
     {
-        $lastUpdateIdModel = Setting::where('key','lastUpdateId')->first();
+        $lastUpdateIdModel = TotalData::where('key','lastUpdateId')->first();
         $lastUpdateId = (int) $lastUpdateIdModel->value;
         while(true){    
             dump("lastUpdateId = {$lastUpdateId}");
