@@ -8,4 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class TotalData extends Model
 {
     use HasFactory;
+    
+    protected $fillable = ['key', 'value'];
 }
