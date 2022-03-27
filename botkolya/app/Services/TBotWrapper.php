@@ -158,4 +158,9 @@ class TBotWrapper
 
         return $res;
     }
+    
+    public function send($to, $text){
+        return $this->sendMessage(['chat_id'=>$to, 'text'=>$text]);
+        
+    }
 }
