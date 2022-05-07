@@ -3,15 +3,15 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Bot;
-class TestCommand extends Command
+
+class BroadcastCOmmand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'Test';
+    protected $signature = 'command:name';
 
     /**
      * The console command description.
@@ -27,8 +27,6 @@ class TestCommand extends Command
      */
     public function handle()
     {
-        $l = new \App\Classes\Commands\ListPartyCommand();
-        $message['from']['id'] = 430902348;
-        $l->start($message);
+        return 0;
     }
 }

@@ -160,7 +160,7 @@ class TBotWrapper
     }
     
     public function send($to, $text){
-        return $this->sendMessage(['chat_id'=>$to, 'text'=>$text]);
+        return $this->sendMessage(['chat_id'=>$to, 'text'=>$text, 'parse_mode'=>'html']);
         
     }
 }

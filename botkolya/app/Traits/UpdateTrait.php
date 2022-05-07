@@ -2,6 +2,8 @@
 
 namespace App\Traits;
 use App\Classes\Commands\NewPartyCommand;
+use App\Classes\Commands\ListPartyCommand;
+use App\Classes\Commands\BroadcastCommand;
 use App\Models\CommandDialog;
 trait UpdateTrait {
 
@@ -25,7 +27,8 @@ trait UpdateTrait {
         if(!$dialog) return;
         
         switch($commandData[0]){
-            case "new" : (new NewPartyCommand)->callback($callback_query,$dialog);
+            case "new" : (new NewPartyCommand)->callback($callback_query,$dialog, $commandData[1]); break;
+            case "broadcast" : (new BroadcastCommand)->callback($callback_query,$dialog, $commandData[1]); break;
         }
     }
     protected function handleMessage($message) {
@@ -83,7 +86,14 @@ trait UpdateTrait {
         $cmd = $this->getBotCommand($message);
         switch ($cmd){
             case "/new": 
-                if($from == 'private') (new NewPartyCommand())->start($message);                                    
+                if($from == 'private') (new NewPartyCommand())->start($message);  
+                break;
+            case "/list": 
+                if($from == 'private') (new ListPartyCommand())->start($message);  
+                break;
+            case "/broadcast": 
+                if($from == 'private') (new BroadcastCommand())->start($message);  
+                break;
         }
         //dump('handleBotCommand', $message, $from);
     }

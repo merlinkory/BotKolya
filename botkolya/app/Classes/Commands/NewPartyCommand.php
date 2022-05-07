@@ -89,10 +89,14 @@ class NewPartyCommand {
         $this->dialog->data = json_encode($data);
         $this->dialog->save();
 
-        $buttons[][] = [
-            'text' => 'click here',
+        $buttons[] = [[
+            'text' => 'Подтвердить',
             'callback_data' => "new:confirm"
-        ];
+        ],
+            [
+            'text' => 'Отменить',
+            'callback_data' => "new:cancel"
+        ]];
         $keyboard['inline_keyboard'] = $buttons;
 
         Bot::sendMessage([
@@ -102,18 +106,18 @@ class NewPartyCommand {
         ]);
     }
 
-    public function callback($callback, CommandDialog $dialog) {
+    public function callback($callback, CommandDialog $dialog, $calback_result) {
 
-        dump($dialog->data);
-        
         $data = json_decode($dialog->data, true);
-        $party = new Party();
-        $party->title = $data['title'];
-        $party->place = $data['place'];
-        $party->date = strtotime($data['date']);
-        $party->save();
         
-        dump($this->deleteKeyboardMessage($callback));
+        if ($calback_result == 'confirm' && isset($data['title']) && isset($data['place']) && isset($data['date'])) {                                   
+            $party = new Party();
+            $party->title = $data['title'];
+            $party->place = $data['place'];
+            $party->date = strtotime($data['date']);
+            $party->save();
+        }
+        $this->deleteKeyboardMessage($callback);
         $dialog->delete();
     }
 
