@@ -7,6 +7,10 @@ use App\Classes\Commands\BroadcastCommand;
 use App\Models\CommandDialog;
 trait UpdateTrait {
 
+    /**
+     * 
+     * @param array $update
+     */
     protected function handleUpdate(array $update) {
 
         if (isset($update['message'])) {
@@ -18,6 +22,11 @@ trait UpdateTrait {
         }
     }
 
+    /**
+     * 
+     * @param array $callback_query
+     * @return type
+     */
     protected function handleCallbackQuery(array $callback_query){
         $commandData = explode(':',$callback_query['data']);
         
@@ -31,7 +40,12 @@ trait UpdateTrait {
             case "broadcast" : (new BroadcastCommand)->callback($callback_query,$dialog, $commandData[1]); break;
         }
     }
-    protected function handleMessage($message) {
+    
+    /**
+     * 
+     * @param array $message
+     */
+    protected function handleMessage(array $message) {
 
         $type = $message['chat']['type'];
         switch ($type) {
@@ -44,6 +58,11 @@ trait UpdateTrait {
         }
     }
 
+    /**
+     * 
+     * @param array $message
+     * @return int
+     */
     protected function handleGroupdMessage(array $message) {
 
         if ($this->isBotCommand($message)) {
@@ -54,25 +73,30 @@ trait UpdateTrait {
         dump('handleGroupdMessage', $message);
     }
 
+    /**
+     * 
+     * @param array $message
+     * @return int
+     */
     protected function handlePrivateMessage(array $message) {
 
         if ($this->isBotCommand($message)) {
             $this->handleBotCommand($message, 'private');
             return 0;
         }
-                      
+        
+        //если была введена не команда, то проверяем если ли открытый диалог
         $dialog = CommandDialog::where('telegram_user_id', $message['from']['id'])
                 ->where('telegram_chat_id', $message['chat']['id'])->get()->first();
         
         if(!$dialog) return;
+       
         
+       //если есть открытый диалог извлекаем, для какой он команды и вызываем метд next 
        $command = $dialog->command;
         
        $cmd =  new $command();
        $cmd->next(json_decode($dialog->data, true), $message, $dialog);
-
-//       $dialog->delete();
-        dump('handlePrivateMessage', $message);
     }
 
     /**
@@ -98,6 +122,12 @@ trait UpdateTrait {
         //dump('handleBotCommand', $message, $from);
     }
     
+    /**
+     * 
+     * @param array $message
+     * @return array
+     * @throws Exception
+     */
     protected function getBotCommand(array $message){
         if(!isset($message['text'])) throw new Exception("text of cmd not found");
         return $message['text'];

@@ -4,15 +4,10 @@ namespace App\Classes\Commands;
 use Bot;
 use App\Models\CommandDialog;
 
-class BroadcastCommand {
+class BroadcastCommand extends BaseCommandWithDialog {
     public function start(array $message){
          
-        $dialogs = CommandDialog::where('telegram_user_id',$message['from']['id'])
-                ->where('telegram_chat_id',$message['chat']['id'])
-                ->get();
-        foreach ($dialogs as $dialog){
-            $dialog->delete();
-        }
+        $this->deleteDialog($message);
         
         $from = $message['from']['id'];
         Bot::send($from, 'Введине текст');
@@ -94,14 +89,5 @@ class BroadcastCommand {
         }
         $this->deleteKeyboardMessage($callback);
         $dialog->delete();
-    }
-    
-    
-     //TODO перенести в updateTrate
-    protected function deleteKeyboardMessage($callback) {
-        return Bot::deleteMessage([
-                    'chat_id' => $callback['message']['chat']['id'],
-                    'message_id' => $callback['message']['message_id']
-        ]);
-    }
+    }      
 }

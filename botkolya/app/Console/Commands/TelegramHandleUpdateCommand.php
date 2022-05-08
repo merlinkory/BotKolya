@@ -36,7 +36,7 @@ class TelegramHandleUpdateCommand extends Command
                 $lastUpdateId = $update['update_id'] + 1;
                 try{
                     $this->handleUpdate($update);
-                } catch (Exception $ex) {
+                } catch (\Exception $ex) {
                     // log
                 }
                 $lastUpdateIdModel->value = $lastUpdateId;
