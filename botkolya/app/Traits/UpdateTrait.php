@@ -6,6 +6,7 @@ use App\Classes\Commands\ListPartyCommand;
 use App\Classes\Commands\BroadcastCommand;
 use App\Models\CommandDialog;
 use App\Models\Chat;
+use App\Models\Admin;
 trait UpdateTrait {
 
     /**
@@ -23,7 +24,7 @@ trait UpdateTrait {
         } elseif (isset ($update['callback_query'])){
             $this->handleCallbackQuery($update['callback_query']);
         }
-        dump($update);
+//        dump($update);
     }
 
     
@@ -103,7 +104,7 @@ trait UpdateTrait {
             return 0;
         }
 
-        dump('handleGroupdMessage', $message);
+//        dump('handleGroupdMessage', $message);
     }
 
     /**
@@ -136,9 +137,10 @@ trait UpdateTrait {
      * handle bot text command
      * @param array $message
      * @param string $from
-     * @return void
      */
-    protected function handleBotCommand(array $message, string $from):void {
+    protected function handleBotCommand(array $message, string $from) {
+        
+        if(!$this->isAdmin($message)) return false;
         
         $cmd = $this->getBotCommand($message);
         switch ($cmd){
@@ -155,6 +157,14 @@ trait UpdateTrait {
         //dump('handleBotCommand', $message, $from);
     }
     
+    protected function isAdmin(array $message){
+     
+        $username = $message['from']['username'];
+        
+        $admin = Admin::where('username',$username)->get()->first();
+        
+        return ($admin) ? true : false;
+    }
     /**
      * 
      * @param array $message

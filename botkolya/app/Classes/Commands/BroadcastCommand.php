@@ -68,27 +68,7 @@ class BroadcastCommand extends BaseCommandWithDialog {
     
       protected function saveChatDist($data, $message) {
 
-        $data['chat'] = $message['text'];
-        $data['step'] = "confirm";
-
-        $this->dialog->data = json_encode($data);
-        $this->dialog->save();
-
-        $buttons[] = [[
-            'text' => 'Подтвердить',
-            'callback_data' => "broadcast:confirm"
-        ],
-            [
-            'text' => 'Отменить',
-            'callback_data' => "broadcast:cancel"
-        ]];
-        $keyboard['inline_keyboard'] = $buttons;
-
-        Bot::sendMessage([
-            'chat_id' => $data['chat_id'],
-            'text' => 'Подтвердите отправку сообщения',
-            'reply_markup' => $keyboard
-        ]);
+        $this->setChat($message['text'], $data['chat_id'], $this->dialog);        
     }
     
      public function callback($callback, CommandDialog $dialog, $callback_result) {
@@ -107,28 +87,36 @@ class BroadcastCommand extends BaseCommandWithDialog {
         } else if ($callback_result[1] == 'select_chat') {
             
             $data = json_decode($dialog->data, true);
-            $data['chat'] = $callback_result[2];
-            $data['step'] = "confirm";
-
-            $dialog->data = json_encode($data);
-            $dialog->save();
-
-            $buttons[] = [[
-            'text' => 'Подтвердить',
-            'callback_data' => "broadcast:confirm"
-                ],
-                [
-                    'text' => 'Отменить',
-                    'callback_data' => "broadcast:cancel"
-            ]];
-            $keyboard['inline_keyboard'] = $buttons;
-
-            Bot::sendMessage([
-                'chat_id' => $data['chat_id'],
-                'text' => 'Подтвердите отправку сообщения',
-                'reply_markup' => $keyboard
-            ]);
+            
+            $this->setChat($callback_result[2], $data['chat_id'], $dialog);
+                       
         }
         $this->deleteKeyboardMessage($callback);
-    }      
+    }
+    private function setChat(int $target_chat_id, int $current_chat_id, CommandDialog $dialog) {
+
+        $data = json_decode($dialog->data, true);
+        $data['chat'] = $target_chat_id;
+        $data['step'] = "confirm";
+
+        $dialog->data = json_encode($data);
+        $dialog->save();
+
+        $buttons[] = [[
+        'text' => 'Подтвердить',
+        'callback_data' => "broadcast:confirm"
+            ],
+            [
+                'text' => 'Отменить',
+                'callback_data' => "broadcast:cancel"
+        ]];
+        $keyboard['inline_keyboard'] = $buttons;
+
+        Bot::sendMessage([
+            'chat_id' => $current_chat_id,
+            'text' => 'Подтвердите отправку сообщения',
+            'reply_markup' => $keyboard
+        ]);
+    }
+
 }
