@@ -13,7 +13,6 @@ class BroadcastCommand extends BaseCommandWithDialog {
         $from = $message['from']['id'];
         Bot::send($from, 'Введине текст');
 
-        $data['chat_id'] = $from;
         $data['step'] = 'save_message';
         $dialog = new CommandDialog();
         $dialog->telegram_user_id = $from;
@@ -24,22 +23,25 @@ class BroadcastCommand extends BaseCommandWithDialog {
         
     }
     
-       public function next(array $data, array $message, CommandDialog $dialog) {
+       public function next(CommandDialog $dialog, array $message) {
 
         $this->dialog = $dialog;
-
+        $data = json_decode($dialog->data, true);
+        
         switch ($data['step']) {
             case 'save_message':
-                $this->saveMessage($data, $message);
+                $this->saveMessage($dialog, $message);
                 break;
             case 'save_chat_dist':
-                $this->saveChatDist($data, $message);
+                $this->saveChatDist($dialog, $message);
                 break;            
         }
     }
     
-      protected function saveMessage($data, $message) {
+      protected function saveMessage(CommandDialog $dialog, $message) {
 
+        $data = json_decode($dialog->data, true);
+        
         $data['message'] = $message['text'];
         $data['step'] = "save_chat_dist";
 
@@ -60,15 +62,15 @@ class BroadcastCommand extends BaseCommandWithDialog {
         $keyboard['inline_keyboard'] = $buttons;
         
         Bot::sendMessage([
-            'chat_id' => $data['chat_id'],
+            'chat_id' => $dialog->telegram_chat_id,
             'text' => 'Введите чат назначения',
             'reply_markup' => $keyboard
         ]);
     }
     
-      protected function saveChatDist($data, $message) {
+      protected function saveChatDist(CommandDialog $dialog, $message) {
 
-        $this->setChat($message['text'], $data['chat_id'], $this->dialog);        
+        $this->setChat($message['text'], $this->dialog);        
     }
     
      public function callback($callback, CommandDialog $dialog, $callback_result) {
@@ -88,12 +90,12 @@ class BroadcastCommand extends BaseCommandWithDialog {
             
             $data = json_decode($dialog->data, true);
             
-            $this->setChat($callback_result[2], $data['chat_id'], $dialog);
+            $this->setChat($callback_result[2], $dialog);
                        
         }
         $this->deleteKeyboardMessage($callback);
     }
-    private function setChat(int $target_chat_id, int $current_chat_id, CommandDialog $dialog) {
+    private function setChat(int $target_chat_id, CommandDialog $dialog) {
 
         $data = json_decode($dialog->data, true);
         $data['chat'] = $target_chat_id;
@@ -113,7 +115,7 @@ class BroadcastCommand extends BaseCommandWithDialog {
         $keyboard['inline_keyboard'] = $buttons;
 
         Bot::sendMessage([
-            'chat_id' => $current_chat_id,
+            'chat_id' => $dialog->telegram_chat_id,
             'text' => 'Подтвердите отправку сообщения',
             'reply_markup' => $keyboard
         ]);

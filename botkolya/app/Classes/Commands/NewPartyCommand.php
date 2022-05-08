@@ -21,7 +21,6 @@ class NewPartyCommand extends BaseCommandWithDialog{
         $from = $message['from']['id'];
         Bot::send($from, 'Введине название вечеринки');
 
-        $data['chat_id'] = $from;
         $data['step'] = 'save_title';
         $dialog = new CommandDialog();
         $dialog->telegram_user_id = $from;
@@ -31,58 +30,64 @@ class NewPartyCommand extends BaseCommandWithDialog{
         $dialog->save();
     }
 
-    public function next(array $data, array $message, CommandDialog $dialog) {
+    public function next(CommandDialog $dialog, array $message) {
 
-        $this->dialog = $dialog;
-
+        $data = json_decode($dialog->data, true);
+        
         switch ($data['step']) {
             case 'save_title':
-                $this->saveTitle($data, $message);
+                $this->saveTitle($dialog, $message);
                 break;
             case 'save_place':
-                $this->savePlace($data, $message);
+                $this->savePlace($dialog, $message);
                 break;
             case 'save_date':
-                $this->saveDate($data, $message);
+                $this->saveDate($dialog, $message);
                 break;
         }
     }
 
-    protected function saveTitle($data, $message) {
+    protected function saveTitle(CommandDialog $dialog, array $message) {
 
+        $data = json_decode($dialog->data, true);
+        
         $data['title'] = $message['text'];
         $data['step'] = "save_place";
 
-        $this->dialog->data = json_encode($data);
-        $this->dialog->save();
+        $dialog->data = json_encode($data);
+        $dialog->save();
 
         Bot::sendMessage([
-            'chat_id' => $data['chat_id'],
+            'chat_id' => $dialog->telegram_chat_id,
             'text' => 'Введите место проведения',
         ]);
     }
 
-    protected function savePlace($data, $message) {
+    protected function savePlace(CommandDialog $dialog, array $message) {
 
+        $data = json_decode($dialog->data, true);
+        
         $data['place'] = $message['text'];
         $data['step'] = "save_date";
 
-        $this->dialog->data = json_encode($data);
-        $this->dialog->save();
+        $dialog->data = json_encode($data);
+        $dialog->save();
 
         Bot::sendMessage([
-            'chat_id' => $data['chat_id'],
+            'chat_id' => $dialog->telegram_chat_id,
             'text' => 'Введите время проведения',
         ]);
     }
 
-    protected function saveDate($data, $message) {
+    protected function saveDate(CommandDialog $dialog, array $message) {
 
+        $data = json_decode($dialog->data, true);
+        
         $data['date'] = $message['text'];
         $data['step'] = "confirm";
 
-        $this->dialog->data = json_encode($data);
-        $this->dialog->save();
+        $dialog->data = json_encode($data);
+        $dialog->save();
 
         $buttons[] = [[
             'text' => 'Подтвердить',
@@ -95,7 +100,7 @@ class NewPartyCommand extends BaseCommandWithDialog{
         $keyboard['inline_keyboard'] = $buttons;
 
         Bot::sendMessage([
-            'chat_id' => $data['chat_id'],
+            'chat_id' => $dialog->telegram_chat_id,
             'text' => 'Подтвердите создание мероприятия',
             'reply_markup' => $keyboard
         ]);

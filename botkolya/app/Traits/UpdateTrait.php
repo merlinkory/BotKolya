@@ -130,7 +130,7 @@ trait UpdateTrait {
        $command = $dialog->command;
         
        $cmd =  new $command();
-       $cmd->next(json_decode($dialog->data, true), $message, $dialog);
+       $cmd->next($dialog, $message);
     }
 
     /**

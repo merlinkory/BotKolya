@@ -28,5 +28,5 @@ abstract class BaseCommandWithDialog {
     
     abstract function callback($callback, CommandDialog $dialog, $calback_result);
     
-    abstract function next(array $data, array $message, CommandDialog $dialog);
+    abstract function next(CommandDialog $dialog, array $message);
 }
