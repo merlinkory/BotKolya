@@ -3,6 +3,7 @@ namespace App\Classes\Commands;
 
 use Bot;
 use App\Models\CommandDialog;
+use App\Models\Chat;
 
 class BroadcastCommand extends BaseCommandWithDialog {
     public function start(array $message){
@@ -45,9 +46,23 @@ class BroadcastCommand extends BaseCommandWithDialog {
         $this->dialog->data = json_encode($data);
         $this->dialog->save();
 
+        // Получаем список доступных чатов
+        $chats = Chat::All();
+        
+        $buttons;
+              
+        foreach ($chats as $chat) {
+            $buttons[][] = [
+                'text' => $chat->title,
+                'callback_data' => "broadcast:select_chat:{$chat->telegram_id}"
+            ];
+        }
+        $keyboard['inline_keyboard'] = $buttons;
+        
         Bot::sendMessage([
             'chat_id' => $data['chat_id'],
             'text' => 'Введите чат назначения',
+            'reply_markup' => $keyboard
         ]);
     }
     
@@ -76,18 +91,44 @@ class BroadcastCommand extends BaseCommandWithDialog {
         ]);
     }
     
-     public function callback($callback, CommandDialog $dialog, $calback_result) {
+     public function callback($callback, CommandDialog $dialog, $callback_result) {
 
          $data = json_decode($dialog->data, true);
-        if ($calback_result == 'confirm' && isset($data['message']) && isset($data['chat'])) {
+        if ($callback_result[1] == 'confirm' && isset($data['message']) && isset($data['chat'])) {
+
+
+            Bot::sendMessage([
+                'chat_id' => $data['chat'],
+                'text' => $data['message'],
+            ]);
             
-                  
-             Bot::sendMessage([
-            'chat_id' => $data['chat'],
-            'text' => $data['message'],
-        ]);
+            $dialog->delete();
+            
+        } else if ($callback_result[1] == 'select_chat') {
+            
+            $data = json_decode($dialog->data, true);
+            $data['chat'] = $callback_result[2];
+            $data['step'] = "confirm";
+
+            $dialog->data = json_encode($data);
+            $dialog->save();
+
+            $buttons[] = [[
+            'text' => 'Подтвердить',
+            'callback_data' => "broadcast:confirm"
+                ],
+                [
+                    'text' => 'Отменить',
+                    'callback_data' => "broadcast:cancel"
+            ]];
+            $keyboard['inline_keyboard'] = $buttons;
+
+            Bot::sendMessage([
+                'chat_id' => $data['chat_id'],
+                'text' => 'Подтвердите отправку сообщения',
+                'reply_markup' => $keyboard
+            ]);
         }
         $this->deleteKeyboardMessage($callback);
-        $dialog->delete();
     }      
 }

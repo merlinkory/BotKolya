@@ -5,6 +5,7 @@ use App\Classes\Commands\NewPartyCommand;
 use App\Classes\Commands\ListPartyCommand;
 use App\Classes\Commands\BroadcastCommand;
 use App\Models\CommandDialog;
+use App\Models\Chat;
 trait UpdateTrait {
 
     /**
@@ -13,15 +14,47 @@ trait UpdateTrait {
      */
     protected function handleUpdate(array $update) {
 
-        if (isset($update['message'])) {
+        if (isset($update['message']['text'])) {
             $this->handleMessage($update['message']);
-        } elseif (isset($update['new_chat_member'])) {
-            dump($update);
-        }elseif (isset ($update['callback_query'])){
+        } elseif (isset($update['message']['new_chat_members'])) {
+            $this->addChat($update['message']);
+        } elseif (isset($update['message']['left_chat_member'])){
+            $this->removeChat($update['message']);
+        } elseif (isset ($update['callback_query'])){
             $this->handleCallbackQuery($update['callback_query']);
         }
+        dump($update);
     }
 
+    
+    protected function removeChat(array $message){
+        
+        dump('removeChat');
+        $chat = Chat::where('telegram_id', $message['chat']['id'])->get()->first();
+        if(!$chat) return false;
+        if($message['left_chat_member']['username'] == config('constants.telegram_bot_username')){
+            $chat->delete();
+        }
+    }
+    
+    /**
+     * @title Добавляет в БД запись о чате в который добавили бота
+     * @param array $message
+     */
+    protected function addChat(array $message){   
+        dump('addChat');
+        foreach ($message['new_chat_members'] as $member){
+            if(isset($member['username']) && $member['username'] == config('constants.telegram_bot_username')){
+               
+                $chat = Chat::updateOrCreate(
+                        ['telegram_id' => $message['chat']['id']],
+                        ['title' => $message['chat']['title']]
+                ); 
+                
+                break;
+            }
+        }
+    }
     /**
      * 
      * @param array $callback_query
@@ -37,7 +70,7 @@ trait UpdateTrait {
         
         switch($commandData[0]){
             case "new" : (new NewPartyCommand)->callback($callback_query,$dialog, $commandData[1]); break;
-            case "broadcast" : (new BroadcastCommand)->callback($callback_query,$dialog, $commandData[1]); break;
+            case "broadcast" : (new BroadcastCommand)->callback($callback_query,$dialog, $commandData); break;
         }
     }
     

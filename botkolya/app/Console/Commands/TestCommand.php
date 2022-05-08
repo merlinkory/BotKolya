@@ -27,8 +27,6 @@ class TestCommand extends Command
      */
     public function handle()
     {
-        $l = new \App\Classes\Commands\ListPartyCommand();
-        $message['from']['id'] = 430902348;
-        $l->start($message);
+     $c = \App\Models\Chat::updateOrCreate(['telegram_id' => -1001130950080], ['title' => 'test group 2']);
     }
 }
