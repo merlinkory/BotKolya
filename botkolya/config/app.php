@@ -177,6 +177,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\TBotWrapperServiceProvider::class,
+        \App\Providers\DialogFlowServiceProvider::class,
 
     ],
 
@@ -194,6 +195,7 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         // ...
          'Bot' => App\Facades\TBotWrapper::class,
+         'DF' => App\Facades\DialogFlowFacade::class,
     ])->toArray(),
 
 ];

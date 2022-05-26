@@ -7,6 +7,8 @@ use App\Classes\Commands\BroadcastCommand;
 use App\Models\CommandDialog;
 use App\Models\Chat;
 use App\Models\Admin;
+use Bot;
+use  DF;
 trait UpdateTrait {
 
     /**
@@ -24,7 +26,7 @@ trait UpdateTrait {
         } elseif (isset ($update['callback_query'])){
             $this->handleCallbackQuery($update['callback_query']);
         }
-//        dump($update);
+        dump($update);
     }
 
     
@@ -81,6 +83,7 @@ trait UpdateTrait {
      */
     protected function handleMessage(array $message) {
 
+        dump($message);
         $type = $message['chat']['type'];
         switch ($type) {
             case 'group':
@@ -104,7 +107,17 @@ trait UpdateTrait {
             return 0;
         }
 
-//        dump('handleGroupdMessage', $message);
+        dump('handleGroupdMessage', $message);
+              
+        //реагируем на обращениея к боту если никнейм бота стоит в начале строки
+        if(isset($message['entities'])){
+            //Если находим упоминания о боте в начале сообщение, то получаем строку без упоминания бота
+            if($substr_text = $this->detectMeMention($message['text'], $message['entities'])){                             
+                $answer = DF::getAnswer($substr_text);                
+                $from = $message['chat']['id'];
+                Bot::send($from, $answer);
+            }
+        }
     }
 
     /**
@@ -186,6 +199,17 @@ trait UpdateTrait {
             foreach ($message['entities'] as $e)
                 if ($e['type'] === 'bot_command')
                     return true;
+        }
+        return false;
+    }
+    
+    protected function detectMeMention(string $text, array $entities) {
+        foreach ($entities as $e){
+            if($e['type'] != 'mention')
+                continue;
+            //Если упоминание бота идет в начале строки, значит обращаеються к нашему боту
+            if($e['offset'] == 0  && substr($text, $e['offset'], $e['length']) == '@AcademPolyanaBot')
+                    return substr($text, $e['length'], strlen ($text));
         }
         return false;
     }

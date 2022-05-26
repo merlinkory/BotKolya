@@ -8,4 +8,7 @@ return [
     'alert_period_seconds' => 15 * 24 * 60 * 60,
     'chat_to_notify' => 430902348, //-1001387085871 (тусим когда сможем)
     'NotNotifyPeriodFromLastPary' => 15 * 24 * 60 * 60,
+    
+    'dialog_flow_keyfile' => env('DF_KEYFILE'),
+    'dialog_flow_project_id' => env('DF_PROJECT_ID'),
 ];
