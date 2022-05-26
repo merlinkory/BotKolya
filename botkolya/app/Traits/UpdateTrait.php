@@ -113,11 +113,29 @@ trait UpdateTrait {
         if(isset($message['entities'])){
             //Если находим упоминания о боте в начале сообщение, то получаем строку без упоминания бота
             if($substr_text = $this->detectMeMention($message['text'], $message['entities'])){                             
-                $answer = DF::getAnswer($substr_text);                
-                $from = $message['chat']['id'];
-                Bot::send($from, $answer);
+                $this->getAnserAndReply($substr_text, $message['chat']['id']);
+                return;
             }
         }
+        if(isset($message['reply_to_message']) && isset($message['reply_to_message']['from']['username'])){
+            if($message['reply_to_message']['from']['username'] ==  config('constants.telegram_bot_username')){
+                $this->getAnserAndReply($message['text'], $message['chat']['id']);
+                return;
+            }
+        }
+        
+    }
+    
+    /**
+     * 
+     * @param string $text
+     * @param int $chat_id
+     * @return void
+     */
+    protected function getAnserAndReply(string $text, int $chat_id): void{
+            $answer = DF::getAnswer($text);                
+            $from = $chat_id;
+            Bot::send($from, $answer);
     }
 
     /**
@@ -208,7 +226,7 @@ trait UpdateTrait {
             if($e['type'] != 'mention')
                 continue;
             //Если упоминание бота идет в начале строки, значит обращаеються к нашему боту
-            if($e['offset'] == 0  && substr($text, $e['offset'], $e['length']) == '@AcademPolyanaBot')
+            if($e['offset'] == 0  && substr($text, $e['offset'], $e['length']) == '@'. config('constants.telegram_bot_username'))
                     return substr($text, $e['length'], strlen ($text));
         }
         return false;
